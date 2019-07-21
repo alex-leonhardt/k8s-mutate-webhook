@@ -26,10 +26,14 @@ cd ssl/
 make 
 ```
 
-## watcher
+## watcher
 
 useful during devving ... 
 
 ```
 watcher -watch github.com/alex-leonhardt/k8s-mutate-webhook -run github.com/alex-leonhardt/k8s-mutate-webhook/cmd/
 ```
+
+## kudos
+
+- [https://github.com/morvencao/kube-mutating-webhook-tutorial](https://github.com/morvencao/kube-mutating-webhook-tutorial)
