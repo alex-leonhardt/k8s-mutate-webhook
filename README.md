@@ -26,6 +26,24 @@ cd ssl/
 make 
 ```
 
+## docker
+
+to create a docker image .. 
+
+```
+make docker
+```
+
+it'll be tagged with the current git commit (short `ref`) and `:latest`
+
+don't forget to update `IMAGE_PREFIX` in the Makefile or set it when running `make`
+
+### images
+
+[`alexleonhardt/k8s-mutate-webhook`](https://cloud.docker.com/repository/docker/alexleonhardt/k8s-mutate-webhook)
+
+
+
 ## watcher
 
 useful during devving ... 
