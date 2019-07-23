@@ -1,3 +1,4 @@
 ssl/*.key
 ssl/*.pem
+ssl/*.csr
 /mutateme

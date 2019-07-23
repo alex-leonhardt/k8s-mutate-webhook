@@ -1,0 +1,65 @@
+---
+appVersion: v1
+kind: Service
+metadata:
+  name: mutateme
+  labels:
+    app: mutateme
+spec:
+  publishNotReadyAddresses: "true"
+  ports:
+    - port: "443"
+      targetport: "8443"
+  selector:
+    app: mutateme
+
+---
+appVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mutateme
+  labels:
+    app: mutateme
+spec:
+  replicas: "1"
+  template:
+    metadata:
+      name: mutateme
+      labels:
+        app: mutateme
+    spec:
+      containers:
+        - name: mutator
+          image: alexleonhardt/mutateme:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 500Mi
+              memory: 128Mi
+            requests:
+              cpu: 250Mi
+              memory: 64Mi
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: mutateme
+  labels:
+    app: mutateme
+webhooks:
+  - name: mutateme.default.svc.cluster.local
+    clientConfig:
+      caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNU1EY3lNekExTXpFd04xb1hEVEk1TURjeU1EQTFNekV3TjFvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTktTCnlDR01panBETUNkcjdyNlF4dVFXSms2S1pYWlNKbncrbU1LZDc5Ty8xVFpIS3BHZnI5bmUwNnRyazkrbWMxdmkKRFR3bjk2R3Z4VzRzWVF0Q3ZrczVCZnVuTDFROFlPdlMyWk9VL3pjdm12c2c3SjRZaXNaWUN0a2NxZXlPanREZwp4djNnQTcxbXV2dTRhMVpnelEyVWpuaWtJRjUzakRuTXloNUkrQnQwTnMvaVNPSGtBaTNFRHQrelpQYWc4SE14ClJOMngvSEF1aVQrTlZkQWoxaTN4WFlRTXZpSW84anpRQ2JEdi8rNlVWZ25MbldMYUJyV2M0ZVNVMExFQUFkWlkKZWNrcjBVelp6YmpOeHVsbUR4UHRQajBOSFI1RjBxMFpNTEZjY3lsYmxuOTR3VUFtamc5ZENGUm1LeW1NVnc2RApXT2ZxMmVoUG9OYVhEU1ZaeGZrQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFGK2hrZjBNNjBSZldkaFJDWWVjRGg2VlRhUysKUlVneDNHODRuMDBpWGRSUEdzeDh5L2pUSFlBT3psNVJIZzFsT3V0SFBBQWtZaCtDaUlhQ2hzK1dGVUdiS2g5WApIR2JhbGhjNkZKWllTYWRCUmd2aEN4bjIyL052NVdLeEhEOFNUSHF0bzRTL3FGdmtWZmViK2ZzR2dPTDY4UVkyCnk5WXJBV1Q5U0hMZGZBZ2dGRUdTc3NyeEJSS3dIRUF0ZFBnRG1kcWc5QjhPTDJybmI1ZE14a21rZHFtT2J3UEkKSVVUL3c1eGJkcXVCVW9VVjNMOUpnSVNydnR2bVlyMjVaQUxEdjZUMjlkZ2Jxa0xRQVdJUCtua1pzV1RzK3QxYQpPaENjNlRLd1FyU3RXY1d2WFVnVWdaNnRja0tuSTIzc3lsYjZFSmhqSE16V2hDOEUzUjF3dVZ4cllhST0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+      service:
+        name: mutateme
+        namespace: default
+        path: "/mutate"
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+    namespaceSelector:
+      matchLabels:
+        mutateme: enabled
