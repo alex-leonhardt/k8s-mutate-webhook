@@ -1,27 +1,30 @@
 ---
-appVersion: v1
+apiVersion: v1
 kind: Service
 metadata:
   name: mutateme
   labels:
     app: mutateme
 spec:
-  publishNotReadyAddresses: "true"
+  publishNotReadyAddresses: true
   ports:
-    - port: "443"
-      targetport: "8443"
+    - port: 443
+      targetPort: 8443
   selector:
     app: mutateme
 
 ---
-appVersion: apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mutateme
   labels:
     app: mutateme
 spec:
-  replicas: "1"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mutateme
   template:
     metadata:
       name: mutateme
@@ -30,18 +33,18 @@ spec:
     spec:
       containers:
         - name: mutator
-          image: alexleonhardt/mutateme:latest
+          image: alexleonhardt/k8s-mutate-webhook:latest
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 500Mi
+              cpu: 500m
               memory: 128Mi
             requests:
-              cpu: 250Mi
+              cpu: 250m
               memory: 64Mi
 
 ---
-apiVersion: admissionregistration.k8s.io/v1
+apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
   name: mutateme
@@ -50,7 +53,7 @@ metadata:
 webhooks:
   - name: mutateme.default.svc.cluster.local
     clientConfig:
-      caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNU1EY3lNekExTXpFd04xb1hEVEk1TURjeU1EQTFNekV3TjFvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTktTCnlDR01panBETUNkcjdyNlF4dVFXSms2S1pYWlNKbncrbU1LZDc5Ty8xVFpIS3BHZnI5bmUwNnRyazkrbWMxdmkKRFR3bjk2R3Z4VzRzWVF0Q3ZrczVCZnVuTDFROFlPdlMyWk9VL3pjdm12c2c3SjRZaXNaWUN0a2NxZXlPanREZwp4djNnQTcxbXV2dTRhMVpnelEyVWpuaWtJRjUzakRuTXloNUkrQnQwTnMvaVNPSGtBaTNFRHQrelpQYWc4SE14ClJOMngvSEF1aVQrTlZkQWoxaTN4WFlRTXZpSW84anpRQ2JEdi8rNlVWZ25MbldMYUJyV2M0ZVNVMExFQUFkWlkKZWNrcjBVelp6YmpOeHVsbUR4UHRQajBOSFI1RjBxMFpNTEZjY3lsYmxuOTR3VUFtamc5ZENGUm1LeW1NVnc2RApXT2ZxMmVoUG9OYVhEU1ZaeGZrQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFGK2hrZjBNNjBSZldkaFJDWWVjRGg2VlRhUysKUlVneDNHODRuMDBpWGRSUEdzeDh5L2pUSFlBT3psNVJIZzFsT3V0SFBBQWtZaCtDaUlhQ2hzK1dGVUdiS2g5WApIR2JhbGhjNkZKWllTYWRCUmd2aEN4bjIyL052NVdLeEhEOFNUSHF0bzRTL3FGdmtWZmViK2ZzR2dPTDY4UVkyCnk5WXJBV1Q5U0hMZGZBZ2dGRUdTc3NyeEJSS3dIRUF0ZFBnRG1kcWc5QjhPTDJybmI1ZE14a21rZHFtT2J3UEkKSVVUL3c1eGJkcXVCVW9VVjNMOUpnSVNydnR2bVlyMjVaQUxEdjZUMjlkZ2Jxa0xRQVdJUCtua1pzV1RzK3QxYQpPaENjNlRLd1FyU3RXY1d2WFVnVWdaNnRja0tuSTIzc3lsYjZFSmhqSE16V2hDOEUzUjF3dVZ4cllhST0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+      caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNU1EY3lOREExTXpVeU1Gb1hEVEk1TURjeU1UQTFNelV5TUZvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTHNPCjdJKzA0WmkyZlJJU3BHaElCK2RJN1dtVUVVdW5qeU1XY0J1bkNYWjZDdlhxWnlJZlhDa3pENDdqRVF5Z0ZHN00KdnBqUHphMmxpVnJ2bnVHNDBlOWtYSXZhVk54Tlh0M3pUUko4QnpvNElPRktZQWxKZ2xpc2wwcHc1NGN6LytEYgpuemp6L2dQU3dLcWxMdE5ja096ZWZSeUVWUzFVdHVuRzVheUc4MTdqQzcrS2RBdkhiS1VMR2x3WE5scis5YmdKCmdPNEZ5NkJVZXNmT1BOQWJVNE5KWC9zY1h0Rkk0aUl0eVRnQ3NUZXlPbXQrdkdDbE51MTFJT2FsZFYvYmFWSWoKVXVPUlAxSTFXdHBZaG1rYmtGYnhQc1pYT0V2ZDVLWWdMc0Y0UDNRSFFZbjkyWHVwNG9kV1FSNEMzREluekNUKwpXOHVwRmpUbzBqTGk1amx2dCtjQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFJUjlRY003bExIblRxS01na1EzNFF4SkUySnYKemp1WjdzMG5lYTJiSW9BM2d1WXpOd0JNLzJkRkNtaHB2UklISEdxcVhmQmt3NjhaaExHQTF4bEFxaE1qWkhmMQp3bnVjaEZUZE83VVBTV2hZMFpjekM2d1NISGNBT05xN3U2dWExREpidXd0U21UdTdKVldUT0sxSUVEREVXbmc3CnBjZFNrcWsrcGRvb1p1SDBpWG5LNU1IVlBqSlE5TWxuNTF2K1FGdVJZdERjT2Z1MWdqUEwwVEg0dkdpT0hzOGUKU09JOTlOSVVhSGlLcldTOXVkUVowVjFaS2lhQWs2c29IOG8zcEhXOE04KzNHaVVWM1MwL0V5aHVVZUxZTStDagppN2VoQzVRaFNyR3FpQVR0UjlZZWcva01vRGh1Tk9wK0N1clNaMERObU1KWC80R0pBd1hhOTBJSUIrcz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
       service:
         name: mutateme
         namespace: default

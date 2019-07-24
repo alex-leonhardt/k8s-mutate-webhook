@@ -25,12 +25,15 @@ DNS.2 = ${APP}.${NAMESPACE}
 DNS.3 = ${CSR_NAME}
 DNS.4 = ${CSR_NAME}.cluster.local
 EOF
+echo "openssl req -new -key ${APP}.key -subj \"/CN=${CSR_NAME}\" -out ${APP}.csr -config csr.conf"
 openssl req -new -key ${APP}.key -subj "/CN=${CSR_NAME}" -out ${APP}.csr -config csr.conf
 
 echo "... deleting existing csr, if any"
-kubectl delete csr ${CSR_NAME} 2>/dev/null || true
+echo "kubectl delete csr ${CSR_NAME} || :"
+kubectl delete csr ${CSR_NAME} || :
 	
 echo "... creating kubernetes CSR object"
+echo "kubectl create -f -"
 kubectl create -f - <<EOF
 apiVersion: certificates.k8s.io/v1beta1
 kind: CertificateSigningRequest
@@ -49,6 +52,7 @@ EOF
 SECONDS=0
 while true; do
   echo "... waiting for csr to be present in kubernetes"
+  echo "kubectl get csr ${CSR_NAME}"
   kubectl get csr ${CSR_NAME} > /dev/null 2>&1
   if [ "$?" -eq 0 ]; then
       break
@@ -65,6 +69,7 @@ kubectl certificate approve ${CSR_NAME}
 SECONDS=0
 while true; do
   echo "... waiting for serverCert to be present in kubernetes"
+  echo "kubectl get csr ${CSR_NAME} -o jsonpath='{.status.certificate}'"
   serverCert=$(kubectl get csr ${CSR_NAME} -o jsonpath='{.status.certificate}')
   if [[ $serverCert != "" ]]; then 
     break
@@ -77,4 +82,5 @@ while true; do
 done
 
 echo "... creating ${app}.pem cert file"
+echo "\$serverCert | openssl base64 -d -A -out ${APP}.pem"
 echo ${serverCert} | openssl base64 -d -A -out ${APP}.pem

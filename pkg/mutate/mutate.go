@@ -5,6 +5,7 @@ package mutate
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	v1beta1 "k8s.io/api/admission/v1beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -14,24 +15,27 @@ import (
 // Mutate mutates
 func Mutate(body []byte) ([]byte, error) {
 
-	resp := &v1beta1.AdmissionResponse{}
+	log.Printf("recv: %s\n", string(body))
+
 	responseBody := []byte{}
 
-	var ar *v1beta1.AdmissionRequest
+	var admReview *v1beta1.AdmissionReview
 	var err error
 	var pod *corev1.Pod
 
-	if err := json.Unmarshal(body, &ar); err != nil {
+	if err := json.Unmarshal(body, &admReview); err != nil {
 		return nil, fmt.Errorf("unmarshaling request failed with %s", err)
 	}
+
+	ar := admReview.Request
+	resp := admReview.Response
 
 	if ar != nil {
 
 		// Failure by default
-		resp.Result = &metav1.Status{
+		*resp.Result = metav1.Status{
 			Status: "Failure",
 		}
-
 		// > 2 as we cater for an empty json {}
 		if ar.Object.Raw != nil && len(ar.Object.Raw) > 2 {
 			// get the Pod object and unmarshal it into its struct, if we cannot, we might as well stop here
@@ -62,13 +66,15 @@ func Mutate(body []byte) ([]byte, error) {
 		if resp.Result.Status == "Success" {
 			resp.Patch = []byte(`{ "op": "replace", "path": "/spec/containers/image", "value": "debian" }`)
 		}
+
 		// back into JSON so we can return the finished AdmissionResponse directly
 		// w/o needing to convert things in the http handler
-		responseBody, err = json.Marshal(resp)
+		responseBody, err = json.Marshal(admReview)
 		if err != nil {
 			return nil, err
 		}
 	}
 
+	log.Printf("resp: %s\n", string(responseBody))
 	return responseBody, nil
 }

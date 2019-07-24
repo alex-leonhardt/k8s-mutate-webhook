@@ -3,6 +3,8 @@ IMAGE_PREFIX = alexleonhardt
 IMAGE_NAME = $$(basename `pwd`)
 IMAGE_VERSION = $$(git log --abbrev-commit --format=%h -s | head -n 1)
 
+export GO111MODULE=on
+
 app: deps
 	go build -v -o $(NAME) cmd/main.go
 
@@ -25,14 +27,11 @@ push:
 kind:
 	kind create cluster --config kind.yaml
 
-ssl: kind
-	export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"; cd ssl; $(MAKE) clean; $(MAKE)
-
-deploy: ssl
-	export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"; kubectl apply -f deploy/
+deploy:
+	export KUBECONFIG=$$(kind get kubeconfig-path --name="kind"); kubectl apply -f deploy/
 
 reset:
-	export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"; kubectl delete -f deploy/
+	export KUBECONFIG=$$(kind get kubeconfig-path --name="kind"); kubectl delete -f deploy/
 	kind delete cluster --name kind
 
-.PHONY: docker push kind ssl deploy reset
+.PHONY: docker push kind deploy reset
