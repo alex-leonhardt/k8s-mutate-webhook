@@ -17,16 +17,16 @@ func Mutate(body []byte) ([]byte, error) {
 
 	log.Printf("recv: %s\n", string(body))
 
-	responseBody := []byte{}
-
+	// unmarshal request into AdmissionReview struct
 	admReview := v1beta1.AdmissionReview{}
-	var err error
-	var pod *corev1.Pod
-
 	if err := json.Unmarshal(body, &admReview); err != nil {
 		return nil, fmt.Errorf("unmarshaling request failed with %s", err)
 	}
 
+	var err error
+	var pod *corev1.Pod
+
+	responseBody := []byte{}
 	ar := admReview.Request
 	resp := v1beta1.AdmissionResponse{}
 
@@ -49,16 +49,16 @@ func Mutate(body []byte) ([]byte, error) {
 
 		// the actual mutation is done by a string in JSONPatch style, i.e. we don't _actually_ modify the object, but
 		// tell K8S how it should modifiy it
-
 		p := []map[string]string{}
-		for index := range pod.Spec.Containers {
+		for i := range pod.Spec.Containers {
 			patch := map[string]string{
 				"op":    "replace",
-				"path":  fmt.Sprintf("/spec/containers/%d/image", index),
+				"path":  fmt.Sprintf("/spec/containers/%d/image", i),
 				"value": "debian",
 			}
 			p = append(p, patch)
 		}
+		// parse the []map into JSON
 		resp.Patch, err = json.Marshal(p)
 
 		// Success, of course ;)
@@ -67,7 +67,7 @@ func Mutate(body []byte) ([]byte, error) {
 		}
 
 		admReview.Response = &resp
-		// back into JSON so we can return the finished AdmissionResponse directly
+		// back into JSON so we can return the finished AdmissionReview w/ Response directly
 		// w/o needing to convert things in the http handler
 		responseBody, err = json.Marshal(admReview)
 		if err != nil {
