@@ -19,7 +19,7 @@ func Mutate(body []byte) ([]byte, error) {
 
 	responseBody := []byte{}
 
-	var admReview *v1beta1.AdmissionReview
+	admReview := v1beta1.AdmissionReview{}
 	var err error
 	var pod *corev1.Pod
 
@@ -69,7 +69,7 @@ func Mutate(body []byte) ([]byte, error) {
 		admReview.Response = &resp
 		// back into JSON so we can return the finished AdmissionResponse directly
 		// w/o needing to convert things in the http handler
-		responseBody, err = json.Marshal(admReview.Response)
+		responseBody, err = json.Marshal(admReview)
 		if err != nil {
 			return nil, err
 		}
