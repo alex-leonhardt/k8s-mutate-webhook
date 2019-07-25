@@ -15,7 +15,7 @@ test: deps
 	go test -v ./... -cover
 	
 docker:
-	docker build -t $(IMAGE_PREFIX)/$(IMAGE_NAME):$(IMAGE_VERSION) .
+	docker build --no-cache -t $(IMAGE_PREFIX)/$(IMAGE_NAME):$(IMAGE_VERSION) .
 	docker tag $(IMAGE_PREFIX)/$(IMAGE_NAME):$(IMAGE_VERSION) $(IMAGE_PREFIX)/$(IMAGE_NAME):latest
 
 push:

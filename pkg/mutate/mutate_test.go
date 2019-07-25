@@ -133,7 +133,7 @@ func TestMutateJSON(t *testing.T) {
 	r := v1beta1.AdmissionResponse{}
 	err = json.Unmarshal(response, &r)
 	assert.NoError(t, err, "failed to unmarshal with error %s", err)
-	assert.Equal(t, `{ "op": "replace", "path": "/spec/containers/image", "value": "debian" }`, string(r.Patch))
+	assert.Equal(t, `[{"op":"replace","path":"/spec/containers/0/image","value":"debian"}]`, string(r.Patch))
 	assert.Contains(t, r.AuditAnnotations, "mutateme")
 
 }

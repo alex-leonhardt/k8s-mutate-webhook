@@ -28,33 +28,19 @@ func Mutate(body []byte) ([]byte, error) {
 	}
 
 	ar := admReview.Request
-	resp := admReview.Response
+	resp := v1beta1.AdmissionResponse{}
 
 	if ar != nil {
 
-		// Failure by default
-		*resp.Result = metav1.Status{
-			Status: "Failure",
+		// get the Pod object and unmarshal it into its struct, if we cannot, we might as well stop here
+		if err := json.Unmarshal(ar.Object.Raw, &pod); err != nil {
+			return nil, fmt.Errorf("unable unmarshal pod json object %v", err)
 		}
-		// > 2 as we cater for an empty json {}
-		if ar.Object.Raw != nil && len(ar.Object.Raw) > 2 {
-			// get the Pod object and unmarshal it into its struct, if we cannot, we might as well stop here
-			if err := json.Unmarshal(ar.Object.Raw, &pod); err != nil {
-				return nil, fmt.Errorf("unable unmarshal pod json object %v", err)
-			}
-
-			// Success, of course ;)
-			resp.Result = &metav1.Status{
-				Status: "Success",
-			}
-		}
-
 		// set response options
 		resp.Allowed = true
 		resp.UID = ar.UID
-
 		pT := v1beta1.PatchTypeJSONPatch
-		resp.PatchType = &pT
+		resp.PatchType = &pT // it's annoying that this needs to be a pointer as you cannot give a pointer to a constant?
 
 		// add some audit annotations, helpful to know why a object was modified, maybe (?)
 		resp.AuditAnnotations = map[string]string{
@@ -62,14 +48,28 @@ func Mutate(body []byte) ([]byte, error) {
 		}
 
 		// the actual mutation is done by a string in JSONPatch style, i.e. we don't _actually_ modify the object, but
-		// tell K8S how it should modifiy it - only do this if we have already set the status to Success (the Pod json was found)
-		if resp.Result.Status == "Success" {
-			resp.Patch = []byte(`{ "op": "replace", "path": "/spec/containers/image", "value": "debian" }`)
+		// tell K8S how it should modifiy it
+
+		p := []map[string]string{}
+		for index := range pod.Spec.Containers {
+			patch := map[string]string{
+				"op":    "replace",
+				"path":  fmt.Sprintf("/spec/containers/%d/image", index),
+				"value": "debian",
+			}
+			p = append(p, patch)
+		}
+		resp.Patch, err = json.Marshal(p)
+
+		// Success, of course ;)
+		resp.Result = &metav1.Status{
+			Status: "Success",
 		}
 
+		admReview.Response = &resp
 		// back into JSON so we can return the finished AdmissionResponse directly
 		// w/o needing to convert things in the http handler
-		responseBody, err = json.Marshal(admReview)
+		responseBody, err = json.Marshal(admReview.Response)
 		if err != nil {
 			return nil, err
 		}

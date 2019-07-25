@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: c7m
+  labels:
+    name: c7m
+spec:
+  containers:
+  - name: c7m
+    image: centos:7
+    command:
+      - /bin/bash
+    args:
+      - -c
+      - trap "exit" TERM; while :; do sleep 1; done
