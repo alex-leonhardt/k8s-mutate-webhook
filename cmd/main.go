@@ -24,6 +24,7 @@ func handleMutate(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "%s", err)
+		return
 	}
 
 	// mutate the request
@@ -32,6 +33,7 @@ func handleMutate(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "%s", err)
+		return
 	}
 
 	// and write it back
