@@ -9,7 +9,7 @@ import (
 	v1beta1 "k8s.io/api/admission/v1beta1"
 )
 
-func TestMutateJSON(t *testing.T) {
+func TestMutatesValidRequest(t *testing.T) {
 	rawJSON := `{
 		"kind": "AdmissionReview",
 		"apiVersion": "admission.k8s.io/v1beta1",
@@ -138,4 +138,24 @@ func TestMutateJSON(t *testing.T) {
 	assert.Equal(t, `[{"op":"replace","path":"/spec/containers/0/image","value":"debian"}]`, string(rr.Patch))
 	assert.Contains(t, rr.AuditAnnotations, "mutateme")
 
+}
+
+func TestErrorsOnInvalidJson(t *testing.T) {
+	rawJSON := `Wut ?`
+	_, err := Mutate([]byte(rawJSON), false)
+	if err == nil {
+		t.Error("did not fail when sending invalid json")
+	}
+}
+
+func TestErrorsOnInvalidPod(t *testing.T) {
+	rawJSON := `{
+		"request": {
+			"object": 111
+		}
+	}`
+	_, err := Mutate([]byte(rawJSON), false)
+	if err == nil {
+		t.Error("did not fail when sending invalid pod")
+	}
 }

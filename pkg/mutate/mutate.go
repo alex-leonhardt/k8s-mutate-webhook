@@ -15,7 +15,7 @@ import (
 // Mutate mutates
 func Mutate(body []byte, verbose bool) ([]byte, error) {
 	if verbose {
-		log.Printf("recv: %s\n", string(body))
+		log.Printf("recv: %s\n", string(body)) // untested section
 	}
 
 	// unmarshal request into AdmissionReview struct
@@ -72,12 +72,12 @@ func Mutate(body []byte, verbose bool) ([]byte, error) {
 		// w/o needing to convert things in the http handler
 		responseBody, err = json.Marshal(admReview)
 		if err != nil {
-			return nil, err
+			return nil, err // untested section
 		}
 	}
 
 	if verbose {
-		log.Printf("resp: %s\n", string(responseBody))
+		log.Printf("resp: %s\n", string(responseBody)) // untested section
 	}
 
 	return responseBody, nil
