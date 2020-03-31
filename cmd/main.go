@@ -16,23 +16,19 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleMutate(w http.ResponseWriter, r *http.Request) {
-
 	// read the body / request
 	body, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
+
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "%s", err)
+		sendError(err, w)
 		return
 	}
 
 	// mutate the request
-	mutated, err := m.Mutate(body)
+	mutated, err := m.Mutate(body, true)
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "%s", err)
+		sendError(err, w)
 		return
 	}
 
@@ -41,8 +37,13 @@ func handleMutate(w http.ResponseWriter, r *http.Request) {
 	w.Write(mutated)
 }
 
-func main() {
+func sendError(err error, w http.ResponseWriter) {
+	log.Println(err)
+	w.WriteHeader(http.StatusInternalServerError)
+	fmt.Fprintf(w, "%s", err)
+}
 
+func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", handleRoot)
@@ -57,5 +58,4 @@ func main() {
 	}
 
 	log.Fatal(s.ListenAndServeTLS("./ssl/mutateme.pem", "./ssl/mutateme.key"))
-
 }

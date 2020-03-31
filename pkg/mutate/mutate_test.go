@@ -125,7 +125,7 @@ func TestMutateJSON(t *testing.T) {
 			}
 		}
 	}`
-	response, err := Mutate([]byte(rawJSON))
+	response, err := Mutate([]byte(rawJSON), false)
 	if err != nil {
 		t.Errorf("failed to mutate AdmissionRequest %s with error %s", string(response), err)
 	}
