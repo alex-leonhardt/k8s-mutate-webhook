@@ -1,0 +1,8 @@
+language: go
+sudo: false
+branches:
+  only: master
+go: "1.12"
+env:
+- GO111MODULE=on
+script: make test
