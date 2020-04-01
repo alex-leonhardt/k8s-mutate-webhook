@@ -43,13 +43,31 @@ don't forget to update `IMAGE_PREFIX` in the Makefile or set it when running `ma
 [`alexleonhardt/k8s-mutate-webhook`](https://cloud.docker.com/repository/docker/alexleonhardt/k8s-mutate-webhook)
 
 
-
 ## watcher
 
 useful during devving ... 
 
 ```
 watcher -watch github.com/alex-leonhardt/k8s-mutate-webhook -run github.com/alex-leonhardt/k8s-mutate-webhook/cmd/
+```
+
+## Running in docker-for-mac
+
+```bash
+cd ssl && make && cd -
+make docker
+sed -i '' 's/imagePullPolicy: Always/imagePullPolicy: Never/' deploy/webhook.yaml # use local image
+sed -i '' "s/caBundle:.*/caBundle: $(cat ssl/mutateme.pem | base64)/" deploy/webhook.yaml # use local CA 
+kubectl label namespace default mutateme=enabled
+kubectl apply -f deploy/webhook.yaml
+
+# make sure it's running ...
+kubectl get pods
+kubectl logs <PDO> --follow
+
+# create example pod to see it working
+kubectl apply -f pod.yaml
+kubectl get pod c7m -o yaml | grep image: # should be debian
 ```
 
 ## kudos
