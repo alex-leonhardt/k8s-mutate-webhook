@@ -1,14 +1,14 @@
 #! /bin/sh
-set -o errexit
+set -uo errexit
 
-export APP="${1:-mutateme}"
-export NAMESPACE="${2:-default}"
+export APP="${1}"
+export NAMESPACE="${2}"
 export CSR_NAME="${APP}.${NAMESPACE}.svc"
 
-echo "... creating ${app}.key"
+echo "... creating ${APP}.key"
 openssl genrsa -out ${APP}.key 2048
 
-echo "... creating ${app}.csr"
+echo "... creating ${APP}.csr"
 cat >csr.conf<<EOF
 [req]
 req_extensions = v3_req
@@ -31,7 +31,7 @@ openssl req -new -key ${APP}.key -subj "/CN=${CSR_NAME}" -out ${APP}.csr -config
 echo "... deleting existing csr, if any"
 echo "kubectl delete csr ${CSR_NAME} || :"
 kubectl delete csr ${CSR_NAME} || :
-	
+
 echo "... creating kubernetes CSR object"
 echo "kubectl create -f -"
 kubectl create -f - <<EOF
@@ -71,7 +71,7 @@ while true; do
   echo "... waiting for serverCert to be present in kubernetes"
   echo "kubectl get csr ${CSR_NAME} -o jsonpath='{.status.certificate}'"
   serverCert=$(kubectl get csr ${CSR_NAME} -o jsonpath='{.status.certificate}')
-  if [[ $serverCert != "" ]]; then 
+  if [[ $serverCert != "" ]]; then
     break
   fi
   if [[ $SECONDS -ge 60 ]]; then
@@ -81,6 +81,6 @@ while true; do
   sleep 2
 done
 
-echo "... creating ${app}.pem cert file"
+echo "... creating ${APP}.pem cert file"
 echo "\$serverCert | openssl base64 -d -A -out ${APP}.pem"
 echo ${serverCert} | openssl base64 -d -A -out ${APP}.pem
