@@ -44,6 +44,8 @@ func sendError(err error, w http.ResponseWriter) {
 }
 
 func main() {
+	log.Println("Starting server ...")
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", handleRoot)
