@@ -19,13 +19,10 @@ make test
 
 ## ssl/tls
 
-the `ssl/` dir contains a script to create a self-signed certificate, not sure this will even work when running in k8s but that's part of figuring this out I guess
-
-_NOTE: the app expects the cert/key to be in `ssl/` dir relative to where the app is running/started and currently is hardcoded to `mutateme.{key,pem}`_
+App expects the cert/key to be in `ssl/` dir relative to where the app is running/started and currently is hardcoded to `mutateme.{key,pem}`_
 
 ```
-cd ssl/ 
-make 
+openssl req -x509 -newkey rsa:4096 -keyout ssl/mutateme.key -out ssl/mutateme.pem -days 3650 -nodes -subj '/CN=mutateme.mutateme.svc'
 ```
 
 ## docker
@@ -55,8 +52,9 @@ watcher -watch github.com/alex-leonhardt/k8s-mutate-webhook -run github.com/alex
 
 ## Running in docker-for-mac
 
+Generate cert, see above
+
 ```bash
-cd ssl && make && cd -
 make docker
 sed -i '' 's/imagePullPolicy: Always/imagePullPolicy: Never/' deploy/webhook.yaml # use local image
 sed -i '' "s/caBundle:.*/caBundle: $(cat ssl/mutateme.pem | base64)/" deploy/webhook.yaml # use local CA 
