@@ -1,7 +1,7 @@
 ssl/*.key
 ssl/*.pem
 ssl/*.csr
-/mutateme
+mutateme
 
 # Ignore git directories
 .git
