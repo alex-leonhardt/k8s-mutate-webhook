@@ -1,0 +1,8 @@
+ssl/*.key
+ssl/*.pem
+ssl/*.csr
+mutateme
+
+# Ignore git directories
+.git
+.gitignore
